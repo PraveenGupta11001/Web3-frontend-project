@@ -12,6 +12,9 @@ export async function startPriceStream() {
   );
 
   const updateUsdPrice = useGasStore.getState().updateUsdPrice;
+  console.log('Listening to Uniswap Pool:', UNISWAP_V3_POOL_ADDRESS);
+  console.log('Using WebSocket URL:', process.env.NEXT_PUBLIC_ETHEREUM_WS_URL);
+  console.log('Swap Event Topic:', SWAP_EVENT_TOPIC);
 
   provider.on(
     {
@@ -19,23 +22,32 @@ export async function startPriceStream() {
       topics: [SWAP_EVENT_TOPIC],
     },
     (log: ethers.Log) => {
+      alert('Uniswap Swap event detected');
+      console.log('Uniswap Swap event log:', log);
       try {
         const abiCoder = new ethers.AbiCoder();
         const data = abiCoder.decode(
           ['address', 'address', 'int256', 'int256', 'uint160', 'int128', 'int24'],
           log.data
         );
+
         const sqrtPriceX96 = data[4]; // uint160 sqrtPriceX96
-        const price = (Number(sqrtPriceX96) ** 2 * 1e12) / 2 ** 192 / 1e6; // Convert to USD per ETH
+        const sqrtPriceX96BigInt = BigInt(sqrtPriceX96);
+
+        const priceBigInt = (sqrtPriceX96BigInt * sqrtPriceX96BigInt * BigInt(1e18)) / (BigInt(2) ** BigInt(192));
+        const price = Number(priceBigInt) / 1e18;
+
         updateUsdPrice(price);
         console.log('Decoded USD price:', price);
       } catch (error) {
-        console.error('Error decoding Uniswap Swap event:', error);
-        // Fallback to a default price if decoding fails
-        updateUsdPrice(3000); // Approx. ETH/USD price as of July 2025
+        console.error('Error decoding Uniswap Swap event:', error, log.data);
+        // Consider: don't set fallback silently. Log and monitor instead.
       }
     }
   );
+  provider.on('error', (error) => {
+    console.error('WebSocket error:', error);
+  });
 
   return () => {
     provider.removeAllListeners();
