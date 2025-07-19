@@ -1,20 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useGasStore } from '../store/useGasStore';
 import { calculateTransactionCost } from '../lib/calculateCost';
 import { SimulationInput, GasState } from '../lib/types';
 
 export default function SimulationForm() {
-  const { setMode } = useGasStore();
-  const chains = useGasStore((state) => state.chains);
-  const usdPrice = useGasStore((state) => state.usdPrice);
-
   const [input, setInput] = useState<SimulationInput>({ amount: 0.5, chain: 'ethereum' });
   const [cost, setCost] = useState<number | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const { chains, usdPrice } = useGasStore.getState();  // ← real-time snapshot
-  
+    const { chains, usdPrice } = useGasStore.getState();
     const result = calculateTransactionCost(input, chains, usdPrice);
     setCost(result);
   };
