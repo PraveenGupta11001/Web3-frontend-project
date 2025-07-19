@@ -1,6 +1,5 @@
 import { ethers } from 'ethers';
 import { useGasStore } from '../store/useGasStore';
-import { GasState } from './types';
 
 const ARBITRUM_GAS_PRICE_ORACLE = '0x000000000000000000000000000000000000006C';
 
