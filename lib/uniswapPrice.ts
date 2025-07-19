@@ -10,11 +10,7 @@ export async function startPriceStream() {
   const provider = new ethers.WebSocketProvider(
     process.env.NEXT_PUBLIC_ETHEREUM_WS_URL!
   );
-
   const updateUsdPrice = useGasStore.getState().updateUsdPrice;
-  console.log('Listening to Uniswap Pool:', UNISWAP_V3_POOL_ADDRESS);
-  console.log('Using WebSocket URL:', process.env.NEXT_PUBLIC_ETHEREUM_WS_URL);
-  console.log('Swap Event Topic:', SWAP_EVENT_TOPIC);
 
   provider.on(
     {
